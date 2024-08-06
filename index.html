@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>'-graph' and '-graphy' Words Bingo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #bingo-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .bingo-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .bingo-cell:hover {
+            background-color: #f0f0f0;
+        }
+        .bingo-cell.selected {
+            background-color: #90EE90;
+        }
+        .bingo-cell.free {
+            background-color: #FFD700;
+            font-weight: bold;
+        }
+        .bingo-cell.winning {
+            border-color: #FF4500;
+        }
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF4500;
+            height: 30px;
+            margin-bottom: 20px;
+        }
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>'-graph' and '-graphy' Words Bingo</h1>
+        <div id="bingo-board"></div>
+        <div id="message"></div>
+        <div>
+            <button id="shuffle-button">Shuffle Board</button>
+            <button id="reset-button">Reset Selections</button>
+        </div>
+    </div>
+    <script>
+        // Define the words and winning lines
+        const words = [
+            "Phonograph", "Telegraph", "Autograph", "Photograph", "Biography",
+            "Epigraphy", "Geography", "Orthography", "Typography", "Monograph",
+            "Lexicography", "Calligraphy", "Cryptography", "Choreography", "Cartography",
+            "Bibliography", "Holograph", "Mammography", "Paleography", "Seismograph",
+            "Lithography", "Radiography", "Stenography", "Topography"
+        ];
+
+        const winningLines = [
+            [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24], // Rows
+            [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24], // Columns
+            [0, 6, 12, 18, 24], [4, 8, 12, 16, 20] // Diagonals
+        ];
+
+        // Game state
+        let board = [];
+        let selected = new Array(25).fill(false);
+        let winningLine = null;
+
+        // DOM elements
+        const boardElement = document.getElementById('bingo-board');
+        const messageElement = document.getElementById('message');
+        const shuffleButton = document.getElementById('shuffle-button');
+        const resetButton = document.getElementById('reset-button');
+
+        // Initialize the game
+        function initGame() {
+            shuffleBoard();
+            renderBoard();
+            addEventListeners();
+        }
+
+        // Shuffle the board
+        function shuffleBoard() {
+            board = [...words].sort(() => Math.random() - 0.5).slice(0, 24);
+            board.splice(12, 0, "FREE");
+            selected = new Array(25).fill(false);
+            winningLine = null;
+        }
+
+        // Render the board
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            board.forEach((word, index) => {
+                const cell = document.createElement('div');
+                cell.className = `bingo-cell ${index === 12 ? 'free' : ''} ${selected[index] ? 'selected' : ''}`;
+                cell.textContent = word;
+                cell.dataset.index = index;
+                boardElement.appendChild(cell);
+            });
+            updateWinningLine();
+        }
+
+        // Add event listeners
+        function addEventListeners() {
+            boardElement.addEventListener('click', handleCellClick);
+            shuffleButton.addEventListener('click', handleShuffle);
+            resetButton.addEventListener('click', handleReset);
+        }
+
+        // Handle cell click
+        function handleCellClick(event) {
+            const index = parseInt(event.target.dataset.index);
+            if (!isNaN(index) && index !== 12) {
+                selected[index] = !selected[index];
+                renderBoard();
+                checkForWin();
+            }
+        }
+
+        // Handle shuffle button click
+        function handleShuffle() {
+            shuffleBoard();
+            renderBoard();
+            messageElement.textContent = '';
+        }
+
+        // Handle reset button click
+        function handleReset() {
+            selected = new Array(25).fill(false);
+            winningLine = null;
+            renderBoard();
+            messageElement.textContent = '';
+        }
+
+        // Check for win
+        function checkForWin() {
+            for (let line of winningLines) {
+                if (line.every(index => selected[index] || index === 12)) {
+                    winningLine = line;
+                    messageElement.textContent = 'BINGO!';
+                    return;
+                }
+            }
+            winningLine = null;
+            messageElement.textContent = '';
+        }
+
+        // Update winning line visualization
+        function updateWinningLine() {
+            document.querySelectorAll('.bingo-cell').forEach((cell, index) => {
+                cell.classList.toggle('winning', winningLine && winningLine.includes(index));
+            });
+        }
+
+        // Initialize the game when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
